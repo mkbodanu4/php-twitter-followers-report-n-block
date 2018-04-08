@@ -49,6 +49,8 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
 
                 $_SESSION['error'] = implode('<br/>', $errors);
                 $_SESSION['success'] = "You successfully reported " . $success_count . " followers!";
+
+                $_SESSION['last_refresh'] = NULL; // Let script reload amount of followers on next page load
             } catch (Exception $e) {
                 $error = 'System Error: ' . $e->getMessage();
             }
@@ -98,6 +100,20 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
     } catch (Exception $e) {
         $error = 'System Error: ' . $e->getMessage();
     }
+
+    if (!isset($_SESSION['last_refresh']) || !$_SESSION['last_refresh'] || (int)$_SESSION['last_refresh'] < (time() - 400)) {
+        try {
+            $me = $twitter->get('users/show', array(
+                'user_id' => $user_id,
+                'screen_name' => $screen_name
+            ));
+
+            $_SESSION['followers_count'] = $followers_count = $me->followers_count;
+            $_SESSION['last_refresh'] = time();
+        } catch (Exception $e) {
+            $error = 'System Error: ' . $e->getMessage();
+        }
+    }
 }
 
 ?>
@@ -144,15 +160,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         </div>
     <?php } else { ?>
         <div class="row">
-            <div class="col-md-2 col-sm-12">
-                <div class="mt-2">
-                    <img src="<?php echo $img; ?>" alt="<?php echo $screen_name; ?>" class="img-thumbnail">
-                    <span>
-                        Hello, <strong><?php echo $screen_name; ?>!</strong>
-                    </span>
-                </div>
-            </div>
-            <div class="col-md-10 col-sm-12">
+            <div class="col-sm-12">
                 <div class="mt-3">
                     <?php if (isset($error) && $error) { ?>
                         <div class="alert alert-danger">
@@ -166,6 +174,11 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                     <?php } ?>
 
                     <div>
+                        <img src="<?php echo $img; ?>" alt="<?php echo $screen_name; ?>" class="img-thumbnail">
+                        <span>
+                            Hello, <strong><?php echo $screen_name; ?>!</strong>
+                        </span>
+
                         You have <?php echo $followers_count; ?> followers,
                         first <?php echo $followers_count < $config['max_at_once'] ? $followers_count : $config['max_at_once']; ?>
                         of them shown, you can
@@ -184,10 +197,14 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                 <th scope="col">You Follow</th>
                                 <th scope="col">Following</th>
                                 <th scope="col">Followers</th>
+                                <th scope="col">Tweets Count</th>
+                                <th scope="col">Possible bot?</th>
                             </tr>
                             <tr>
-                                <td colspan="7" class="text-center">
+                                <td colspan="10" class="text-center">
                                     <input type="submit" class="btn btn-danger" name="action" value="Report'n'Block!">
+                                    <a href="<?php echo $config['base_url'] . '?' . http_build_query(array("_t" => time())); ?>"
+                                       class="btn btn-success">Refresh List</a>
                                 </td>
                             </tr>
                             </thead>
@@ -215,7 +232,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                             <?php echo $follower->created_at; ?>
                                         </td>
                                         <td>
-                                            <?php echo $follower->following ? "Yes" : "No"; ?>
+                                            <?php echo $follower->following ? '<strong class="text-success">Yes</strong>' : "No"; ?>
                                         </td>
                                         <td>
                                             <?php echo $follower->friends_count; ?>
@@ -223,11 +240,17 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                         <td>
                                             <?php echo $follower->followers_count; ?>
                                         </td>
+                                        <td>
+                                            <?php echo $follower->statuses_count; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo $follower->friends_count > $follower->followers_count && $follower->followers_count < 5 && (int)$follower->statuses_count === 0 && "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" === $follower->profile_image_url_https ? '<strong class="text-danger">Yes</strong>' : "No"; ?>
+                                        </td>
                                     </tr>
                                 <?php } ?>
                             <?php } else { ?>
                                 <tr>
-                                    <td colspan="7">Nothing found.</td>
+                                    <td colspan="10">Nothing found.</td>
                                 </tr>
                             <?php } ?>
                             </tbody>

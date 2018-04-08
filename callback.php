@@ -44,6 +44,7 @@ try {
     $_SESSION['oauth_token'] = $token['oauth_token'];
     $_SESSION['oauth_token_secret'] = $token['oauth_token_secret'];
     $_SESSION['followers_count'] = $user->followers_count;
+    $_SESSION['last_refresh'] = time();
 
     header('Location: ' . $config['base_url']);
 } catch (Exception $e) {
