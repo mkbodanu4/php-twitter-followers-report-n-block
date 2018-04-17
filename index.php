@@ -76,7 +76,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
             'user_id' => $user_id,
             'screen_name' => $screen_name,
             'count' => $config['max_at_once'],
-            'skip_status' => 'true'
+            'skip_status' => 'false'
         ));
 
         if (isset($followers_raw->users) && is_array($followers_raw->users) && count($followers_raw->users))
@@ -126,6 +126,28 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Twitter Followers Report'n'Block</title>
+
+    <style>
+        .table-header-row {
+            border-bottom: 2px solid #d3d3d3;
+            padding: 7px;
+            margin-bottom: 12px;
+            word-wrap: break-word;
+        }
+
+        .table-row {
+            border-bottom: 1px solid #d3d3d3;
+            padding: 7px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            input[type="checkbox"] {
+                transform: scale(2, 2);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -186,75 +208,156 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                     </div>
 
                     <form action="<?php echo $config['base_url']; ?>" method="post">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">&nbsp;</th>
-                                <th scope="col">#</th>
-                                <th scope="col">UP</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Created At</th>
-                                <th scope="col">You Follow</th>
-                                <th scope="col">Following</th>
-                                <th scope="col">Followers</th>
-                                <th scope="col">Tweets Count</th>
-                                <th scope="col">Possible bot?</th>
-                            </tr>
-                            <tr>
-                                <td colspan="10" class="text-center">
-                                    <input type="submit" class="btn btn-danger" name="action" value="Report'n'Block!">
-                                    <a href="<?php echo $config['base_url'] . '?' . http_build_query(array("_t" => time())); ?>"
-                                       class="btn btn-success">Refresh List</a>
-                                </td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php if (isset($followers) && is_array($followers) && count($followers)) { ?>
-                                <?php foreach ($followers as $follower) { ?>
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" title="<?php echo $follower->screen_name; ?>"
-                                                   name="follower_id[]" value="<?php echo $follower->id; ?>">
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->id; ?>
-                                        </td>
-                                        <td>
-                                            <img src="<?php echo $follower->profile_image_url_https; ?>"
-                                                 alt="<?php echo $follower->screen_name; ?>" class="img-thumbnail">
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->name; ?>&nbsp;<a
-                                                    href="https://twitter.com/<?php echo $follower->screen_name; ?>"
-                                                    target="_blank">(@<?php echo $follower->screen_name; ?>)</a>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->created_at; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->following ? '<strong class="text-success">Yes</strong>' : "No"; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->friends_count; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->followers_count; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->statuses_count; ?>
-                                        </td>
-                                        <td>
-                                            <?php echo $follower->friends_count > $follower->followers_count && $follower->followers_count < 5 && (int)$follower->statuses_count === 0 && "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" === $follower->profile_image_url_https ? '<strong class="text-danger">Yes</strong>' : "No"; ?>
-                                        </td>
-                                    </tr>
+                        <div class="">
+                            <div class="container-fluid">
+                                <div class="row table-header-row d-none d-sm-flex">
+                                    <div class="col-md-1 col-sm-1 col-2">
+                                        &nbsp;
+                                    </div>
+                                    <div class="col-md-1 col-sm-2 col-5">
+                                        <strong>UP</strong>
+                                    </div>
+                                    <div class="col-md-5 col-sm-7 col-5">
+                                        <strong>Name</strong>
+                                    </div>
+                                    <div class="col-md-1 col-sm-2 col-12">
+                                        <strong>Created Time</strong>
+                                    </div>
+                                    <div class="col-md-1 col-sm-3 col-12">
+                                        <strong>You Follow</strong>
+                                    </div>
+                                    <div class="col-md-1 col-sm-3 col-12">
+                                        <strong>Following/Followers</strong>
+                                    </div>
+                                    <div class="col-md-1 col-sm-3 col-12">
+                                        <strong>Tweets Count</strong>
+                                    </div>
+                                    <div class="col-md-1 col-sm-3 col-12">
+                                        <strong>Possible bot?</strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 text-center">
+                                        <input type="submit" class="btn btn-danger" name="action"
+                                               value="Report'n'Block!">
+                                        <a href="<?php echo $config['base_url'] . '?' . http_build_query(array("_t" => time())); ?>"
+                                           class="btn btn-success">Refresh List</a>
+                                    </div>
+                                </div>
+                                <?php if (isset($followers) && is_array($followers) && count($followers)) { ?>
+                                    <?php foreach ($followers as $follower) { ?>
+                                        <div class="row table-row">
+                                            <div class="col-md-1 col-sm-1 col-2 text-left text-sm-center">
+                                                <input type="checkbox"
+                                                       title="<?php echo $follower->screen_name; ?>"
+                                                       name="follower_id[]" value="<?php echo $follower->id; ?>">
+                                            </div>
+                                            <div class="col-md-1 col-sm-2 col-5">
+                                                <img src="<?php echo $follower->profile_image_url_https; ?>"
+                                                     alt="<?php echo $follower->screen_name; ?>" class="img-thumbnail">
+                                            </div>
+                                            <div class="col-md-5 col-sm-7 col-5">
+                                                <?php echo $follower->name; ?>&nbsp;<a
+                                                        href="https://twitter.com/<?php echo $follower->screen_name; ?>"
+                                                        target="_blank">(@<?php echo $follower->screen_name; ?>)</a>
+                                            </div>
+                                            <div class="col-md-1 col-sm-2 col-12">
+                                                <span class="d-xs-block d-sm-none">
+                                                    <strong>Created Time:</strong>
+                                                </span>
+                                                <?php echo ceil((time() - strtotime($follower->created_at)) / 86400) . " day(s) ago"; ?>
+                                            </div>
+                                            <div class="col-md-1 col-sm-3 col-12">
+                                                <span class="d-xs-block d-sm-none">
+                                                    <strong>You Follow:</strong>
+                                                </span>
+                                                <?php echo $follower->following ? '<strong class="btn btn-success">Yes</strong>' : "No"; ?>
+                                            </div>
+                                            <div class="col-md-1 col-sm-3 col-12">
+                                                <span class="d-xs-block d-sm-none">
+                                                    <strong>Following/Followers:</strong>
+                                                </span>
+                                                <?php echo $follower->friends_count; ?>
+                                                &nbsp;/&nbsp;
+                                                <?php echo $follower->followers_count; ?>
+                                            </div>
+                                            <div class="col-md-1 col-sm-3 col-12">
+                                                <span class="d-xs-block d-sm-none">
+                                                    <strong>Tweets Count</strong>
+                                                </span>
+                                                <?php echo $follower->statuses_count; ?>
+                                            </div>
+                                            <div class="col-md-1 col-sm-3 col-12">
+                                                <span class="d-xs-block d-sm-none">
+                                                    <strong>Possible bot? -</strong>
+                                                </span>
+                                                <?php
+
+                                                $bot_value = 0;
+
+                                                /* 1. Most of bots were created less than 3 days ago */
+                                                if (ceil((time() - strtotime($follower->created_at)) / 86400) <= 3)
+                                                    $bot_value++;
+
+                                                /* 2. Most of bots follow many account with low follow-back rate */
+                                                if ($follower->friends_count > $follower->followers_count)
+                                                    $bot_value++;
+
+                                                /* 3. Most of bots have only few followers */
+                                                if ($follower->followers_count < 5)
+                                                    $bot_value++;
+
+                                                /* 4. Most of bots have no tweets at all */
+                                                if ((int)$follower->statuses_count === 0)
+                                                    $bot_value++;
+                                                else {
+                                                    /* 5. Most of bots have only retweets, so last status 100% retweet */
+                                                    if (isset($follower->status) && isset($follower->status->retweeted_status)) {
+                                                        $bot_value++;
+                                                    }
+                                                }
+
+                                                /* 6. Most of bots have default profile picture */
+                                                if ("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" === $follower->profile_image_url_https)
+                                                    $bot_value++;
+
+                                                /* 7. Most of bots have no profile background */
+                                                if (NULL === $follower->profile_background_image_url_https)
+                                                    $bot_value++;
+
+                                                switch ($bot_value) {
+                                                    case 7:
+                                                    case 6:
+                                                        echo '<strong class="btn btn-danger">100%</strong>';
+                                                        break;
+                                                    case 5:
+                                                        echo '<strong class="btn btn-primary">70%</strong>';
+                                                        break;
+                                                    case 4:
+                                                    case 3:
+                                                        echo '<strong class="btn btn-info">50%</strong>';
+                                                        break;
+                                                    case 2:
+                                                        echo '<strong class="btn btn-success">20%</strong>';
+                                                        break;
+                                                    case 1:
+                                                    case 0:
+                                                    default:
+                                                        echo "0%";
+                                                }
+
+                                                ?>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <div class="row">
+                                        <div class="col-md-1 col-sm-12">Nothing found.</div>
+                                    </div>
                                 <?php } ?>
-                            <?php } else { ?>
-                                <tr>
-                                    <td colspan="10">Nothing found.</td>
-                                </tr>
-                            <?php } ?>
-                            </tbody>
-                        </table>
+                                </tbody>
+                                </table>
+                            </div>
                     </form>
                 </div>
             </div>
