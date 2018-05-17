@@ -114,6 +114,9 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
             $error = 'System Error: ' . $e->getMessage();
         }
     }
+
+    $today_only = isset($_GET['today_only']) && 1 === (int)$_GET['today_only'];
+    $true_bot_only = isset($_GET['true_bot_only']) && 1 === (int)$_GET['true_bot_only'];
 }
 
 ?>
@@ -142,10 +145,15 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
             margin-bottom: 5px;
         }
 
-        @media (max-width: 768px) {
-            input[type="checkbox"] {
-                transform: scale(2, 2);
-            }
+        .selected-row {
+            background-color: #a9cef880;
+        }
+
+        .table-row {
+            user-select: none; /* CSS3 (little to no support) */
+            -ms-user-select: none; /* IE 10+ */
+            -moz-user-select: none; /* Gecko (Firefox) */
+            -webkit-user-select: none; /* Webkit (Safari, Chrome) */
         }
     </style>
 </head>
@@ -207,13 +215,37 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                         select and report them as bots.
                     </div>
 
+                    <div class="text-right pb-2">
+                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#filters"
+                                aria-expanded="false" aria-controls="filters">
+                            Filters
+                        </button>
+                    </div>
+
+                    <div class="collapse" id="filters">
+                        <div class="card card-body">
+                            <form action="<?php echo $config['base_url']; ?>" method="get">
+                                <div class="form-group">
+                                    <input type="checkbox" title="Today Only" name="today_only" id="today_only"
+                                        <?php echo $today_only ? 'checked' : ''; ?>
+                                           value="1"/>
+                                    <label for="today_only">Created Time - Today Only</label>
+                                </div>
+                                <div class="form-group">
+                                    <input type="checkbox" title="true_bot_only" name="true_bot_only" id="true_bot_only"
+                                        <?php echo $true_bot_only ? 'checked' : ''; ?>
+                                           value="1"/>
+                                    <label for="true_bot_only">Possible Bot - 100% Only</label>
+                                </div>
+                                <input type="submit" class="btn btn-primary" value="Refresh List"/>
+                            </form>
+                        </div>
+                    </div>
+
                     <form action="<?php echo $config['base_url']; ?>" method="post">
                         <div class="">
                             <div class="container-fluid">
                                 <div class="row table-header-row d-none d-sm-flex">
-                                    <div class="col-md-1 col-sm-1 col-2">
-                                        &nbsp;
-                                    </div>
                                     <div class="col-md-1 col-sm-2 col-5">
                                         <strong>UP</strong>
                                     </div>
@@ -246,12 +278,57 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                 </div>
                                 <?php if (isset($followers) && is_array($followers) && count($followers)) { ?>
                                     <?php foreach ($followers as $follower) { ?>
+                                        <?php
+
+                                        /* Created Time Calculation */
+                                        $created_time = ceil((time() - strtotime($follower->created_at)) / 86400);
+
+                                        /* Possible Bot Index Calculation */
+                                        $bot_value = 0;
+
+                                        /* 1. Most of bots were created less than 3 days ago */
+                                        if (ceil((time() - strtotime($follower->created_at)) / 86400) <= 3)
+                                            $bot_value++;
+
+                                        /* 2. Most of bots follow many account with low follow-back rate */
+                                        if ($follower->friends_count > $follower->followers_count)
+                                            $bot_value++;
+
+                                        /* 3. Most of bots have only few followers */
+                                        if ($follower->followers_count < 5)
+                                            $bot_value++;
+
+                                        /* 4. Most of bots have no tweets at all */
+                                        if ((int)$follower->statuses_count === 0)
+                                            $bot_value++;
+                                        else {
+                                            /* 5. Most of bots have only retweets, so last status 100% retweet */
+                                            if (isset($follower->status) && isset($follower->status->retweeted_status)) {
+                                                $bot_value++;
+                                            }
+                                        }
+
+                                        /* 6. Most of bots have default profile picture */
+                                        if ("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" === $follower->profile_image_url_https)
+                                            $bot_value++;
+
+                                        /* 7. Most of bots have no profile background */
+                                        if (NULL === $follower->profile_background_image_url_https)
+                                            $bot_value++;
+
+                                        /* Filters */
+
+                                        if ($today_only && $created_time > 1)
+                                            continue;
+
+                                        if ($true_bot_only && $bot_value < 6)
+                                            continue;
+
+                                        ?>
                                         <div class="row table-row">
-                                            <div class="col-md-1 col-sm-1 col-2 text-left text-sm-center">
-                                                <input type="checkbox"
-                                                       title="<?php echo $follower->screen_name; ?>"
-                                                       name="follower_id[]" value="<?php echo $follower->id; ?>">
-                                            </div>
+                                            <input type="checkbox" class="d-none"
+                                                   title="<?php echo $follower->screen_name; ?>"
+                                                   name="follower_id[]" value="<?php echo $follower->id; ?>">
                                             <div class="col-md-1 col-sm-2 col-5">
                                                 <img src="<?php echo $follower->profile_image_url_https; ?>"
                                                      alt="<?php echo $follower->screen_name; ?>" class="img-thumbnail">
@@ -265,7 +342,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                                 <span class="d-xs-block d-sm-none">
                                                     <strong>Created Time:</strong>
                                                 </span>
-                                                <?php echo ceil((time() - strtotime($follower->created_at)) / 86400) . " day(s) ago"; ?>
+                                                <?php echo $created_time . " day(s) ago"; ?>
                                             </div>
                                             <div class="col-md-1 col-sm-3 col-12">
                                                 <span class="d-xs-block d-sm-none">
@@ -292,38 +369,6 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                                     <strong>Possible bot? -</strong>
                                                 </span>
                                                 <?php
-
-                                                $bot_value = 0;
-
-                                                /* 1. Most of bots were created less than 3 days ago */
-                                                if (ceil((time() - strtotime($follower->created_at)) / 86400) <= 3)
-                                                    $bot_value++;
-
-                                                /* 2. Most of bots follow many account with low follow-back rate */
-                                                if ($follower->friends_count > $follower->followers_count)
-                                                    $bot_value++;
-
-                                                /* 3. Most of bots have only few followers */
-                                                if ($follower->followers_count < 5)
-                                                    $bot_value++;
-
-                                                /* 4. Most of bots have no tweets at all */
-                                                if ((int)$follower->statuses_count === 0)
-                                                    $bot_value++;
-                                                else {
-                                                    /* 5. Most of bots have only retweets, so last status 100% retweet */
-                                                    if (isset($follower->status) && isset($follower->status->retweeted_status)) {
-                                                        $bot_value++;
-                                                    }
-                                                }
-
-                                                /* 6. Most of bots have default profile picture */
-                                                if ("https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" === $follower->profile_image_url_https)
-                                                    $bot_value++;
-
-                                                /* 7. Most of bots have no profile background */
-                                                if (NULL === $follower->profile_background_image_url_https)
-                                                    $bot_value++;
 
                                                 switch ($bot_value) {
                                                     case 7:
@@ -373,6 +418,73 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+<script>
+    var row_start = null, row_end, checkbox, rows;
+
+    $(function () {
+        $('.table-row').click(function (e) {
+            if (e.target.tagName === "A") return;
+
+            checkbox = $(this).find('input[type=checkbox]');
+            if (checkbox.length) {
+                checkbox.prop('checked', !checkbox.prop('checked'));
+
+                if (checkbox.prop('checked')) {
+                    $(this).addClass('selected-row');
+                } else {
+                    $(this).removeClass('selected-row');
+                }
+            }
+        });
+
+        $('.table-row').mousedown(function (e) {
+            if (e.target.tagName === "A") return;
+
+            if (row_start === null) {
+                if (e.shiftKey)
+                    row_start = $(this).toArray()[0];
+            } else {
+                if (e.shiftKey)
+                    row_end = $(this).toArray()[0];
+
+                rows = $('.table-row').toArray();
+
+                if (row_start !== row_end && rows.indexOf(row_start) !== -1 && rows.indexOf(row_end) !== -1) {
+                    if (rows.indexOf(row_start) > rows.indexOf(row_end)) {
+                        for (var i = (rows.indexOf(row_end) + 1); i < rows.indexOf(row_start); i++) {
+                            checkbox = $(rows[i]).find('input[type=checkbox]');
+                            if (checkbox.length) {
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+
+                                if (checkbox.prop('checked')) {
+                                    $(rows[i]).addClass('selected-row');
+                                } else {
+                                    $(rows[i]).removeClass('selected-row');
+                                }
+                            }
+                        }
+                    } else {
+                        for (var i = (rows.indexOf(row_start) + 1); i < rows.indexOf(row_end); i++) {
+                            checkbox = $(rows[i]).find('input[type=checkbox]');
+                            if (checkbox.length) {
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+
+                                if (checkbox.prop('checked')) {
+                                    $(rows[i]).addClass('selected-row');
+                                } else {
+                                    $(rows[i]).removeClass('selected-row');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                row_start = null;
+                row_end = null;
+            }
+        });
+    });
+</script>
 <?php
 
 // Create footer.php and put Google Analytics code there if you want any
