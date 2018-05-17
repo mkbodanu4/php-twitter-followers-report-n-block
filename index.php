@@ -425,6 +425,8 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         $('.table-row').click(function (e) {
             if (e.target.tagName === "A") return;
 
+            row_start = $(this).toArray()[0];
+
             checkbox = $(this).find('input[type=checkbox]');
             if (checkbox.length) {
                 checkbox.prop('checked', !checkbox.prop('checked'));
@@ -440,12 +442,8 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         $('.table-row').mousedown(function (e) {
             if (e.target.tagName === "A") return;
 
-            if (row_start === null) {
-                if (e.shiftKey)
-                    row_start = $(this).toArray()[0];
-            } else {
-                if (e.shiftKey)
-                    row_end = $(this).toArray()[0];
+            if (row_start !== null && e.shiftKey) {
+                row_end = $(this).toArray()[0];
 
                 rows = $('.table-row').toArray();
 
