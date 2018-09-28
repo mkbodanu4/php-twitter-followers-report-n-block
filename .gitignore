@@ -1,4 +1,6 @@
 config.php
+policy.php
+terms.php
 footer.php
 
 .idea/

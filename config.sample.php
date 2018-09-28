@@ -1,5 +1,6 @@
 <?php
 
+$config['app_owner'] = "";
 $config['base_url'] = "http://localhost/php-twitter-followers-report-n-block/";
 $config['url_login'] = "http://localhost/php-twitter-followers-report-n-block/login.php";
 

@@ -128,7 +128,9 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Twitter Followers Report'n'Block</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    <title>Report'n'Block <?php echo $config['app_owner'] ? '/ ' . $config['app_owner'] : ""; ?></title>
 
     <style>
         .table-header-row {
@@ -159,32 +161,83 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
 </head>
 <body>
 
-<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="<?php echo $config['base_url']; ?>">Twitter Followers
-        Report'n'Block</a>
+<nav class="navbar navbar-expand-sm navbar-dark sticky-top bg-dark flex-md-nowrap">
+    <a class="navbar-brand" href="<?php echo $config['base_url']; ?>">
+        Report'n'Block
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#top-nav" aria-controls="top-nav"
+            aria-expanded="false" aria-label="Open Menu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-    <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-            <?php if (!isset($user_id) || !$user_id) { ?>
-                <a href="<?php echo $config['base_url'] . 'login.php'; ?>" class="nav-link">
-                    Login
+    <div class="collapse navbar-collapse" id="top-nav">
+        <ul class="navbar-nav">
+            <li class="nav-item text-nowrap">
+                <a href="https://github.com/mkbodanu4/php-twitter-followers-report-n-block" class="nav-link">
+                    <i class="fab fa-github"></i> Source
                 </a>
-            <?php } else { ?>
-                <a href="<?php echo $config['base_url'] . 'logout.php'; ?>" class="nav-link">
-                    Logout
+            </li>
+            <li class="nav-item text-nowrap">
+                <a href="<?php echo $config['base_url'] . 'privacy.php'; ?>" class="nav-link">
+                    <i class="fas fa-info-circle"></i> Privacy Policy
                 </a>
-            <?php } ?>
-        </li>
-    </ul>
+            </li>
+            <li class="nav-item text-nowrap">
+                <a href="<?php echo $config['base_url'] . 'terms.php'; ?>" class="nav-link">
+                    <i class="fas fa-info-circle"></i> Terms Of Service
+                </a>
+            </li>
+            <li class="nav-item text-nowrap">
+                <?php if (!isset($user_id) || !$user_id) { ?>
+                    <a href="<?php echo $config['base_url'] . 'login.php'; ?>" class="nav-link">
+                        <i class="fab fa-twitter"></i> Login
+                    </a>
+                <?php } else { ?>
+                    <a href="<?php echo $config['base_url'] . 'logout.php'; ?>" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                <?php } ?>
+            </li>
+        </ul>
+    </div>
 </nav>
 
 <div class="container-fluid">
     <?php if (!isset($user_id) || !$user_id) { ?>
         <div class="row">
             <div class="col-md-12">
-                <div class="alert alert-danger mt-2 text-right">
-                    Click on Login button. <strong>C'mon! <a href="<?php echo $config['base_url'] . 'login.php'; ?>">Click
-                            up here!</a></strong>
+                <div class="card mt-3 text-center">
+                    <div class="card-header">
+                        <i class="fa fa-info"></i> About App
+                    </div>
+                    <div class="card-body">
+                        <strong>Report'n'Block</strong> is web-based tool to make easier blocking of followers that
+                        could be bots.<br/>
+                        Very easy to use - just log in via <i class="fab fa-twitter"></i> Twitter, select followers you
+                        want to report (and block) and click on <b>"Report'n'Block!"</b> button.<br/>
+                        <strong>Make sure that you reporting user on your own decision before performing any
+                            action!</strong><br/>
+                        We do not store on our side any of your data nor do any action with your account - we just
+                        getting your username, followers list and sending reports back to Twitter.<br/>
+                        Want to be sure (or check how it works) - app code available on
+                        <a href="https://github.com/mkbodanu4/php-twitter-followers-report-n-block" target="_blank"><i
+                                    class="fab fa-github"></i> GitHub</a>.<br/>
+                        <i>
+                            By clicking below to log in, you’re agreeing to our
+                            <a href="<?php echo $config['base_url'] . 'privacy.php'; ?>">
+                                Privacy Policy
+                            </a> and
+                            <a href="<?php echo $config['base_url'] . 'terms.php'; ?>">
+                                Terms Of Service
+                            </a>.
+                        </i><br/>
+                        <a class="btn btn-primary mt-3" href="<?php echo $config['base_url'] . 'login.php'; ?>">
+                            Log In via <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                    <div class="card-footer text-right">
+                        &copy; <?php echo date("Y"); ?> <?php echo $config['app_owner'] ? $config['app_owner'] : ""; ?>
+                    </div>
                 </div>
             </div>
         </div>
