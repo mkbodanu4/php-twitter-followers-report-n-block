@@ -178,7 +178,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                 </a>
             </li>
             <li class="nav-item text-nowrap">
-                <a href="<?php echo $config['base_url'] . 'privacy.php'; ?>" class="nav-link">
+                <a href="<?php echo $config['base_url'] . 'policy.php'; ?>" class="nav-link">
                     <i class="fas fa-info-circle"></i> Privacy Policy
                 </a>
             </li>
@@ -224,7 +224,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                     class="fab fa-github"></i> GitHub</a>.<br/>
                         <i>
                             By clicking below to log in, you’re agreeing to our
-                            <a href="<?php echo $config['base_url'] . 'privacy.php'; ?>">
+                            <a href="<?php echo $config['base_url'] . 'policy.php'; ?>">
                                 Privacy Policy
                             </a> and
                             <a href="<?php echo $config['base_url'] . 'terms.php'; ?>">
