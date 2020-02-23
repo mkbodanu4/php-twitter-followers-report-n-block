@@ -1,7 +1,7 @@
 # Report'n'Block App
 App with interface for reporting (and blocking) of possible bot followers.
 
-Demo: [MicroApp by mkbodanu4](https://apps.manko.pp.ua/report-n-block/)
+Demo: [MicroApp by mkbodanu4](https://apps.manko.pro/report-n-block/)
 
 Installation:
 1. Upload code to your hosting / VPS
