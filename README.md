@@ -1,3 +1,6 @@
+**[SUSPENDED] This project is suspended as Twitter updated their API and no free access available for actions like blocking users.**
+==============================
+
 # Report'n'Block App
 App with interface for reporting (and blocking) of possible bot followers.
 
